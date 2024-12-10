@@ -1,0 +1,127 @@
+<!-- Index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Roster Web App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    nav {
+      display: flex;
+      background: #007bff;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 10px;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    nav a:hover {
+      background: #0056b3;
+    }
+    .active {
+      background: #0056b3;
+    }
+    .content {
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="#currentRoster" onclick="loadPage('currentRoster', this)" class="active">Current Roster</a>
+    <a href="#proposedChanges" onclick="loadPage('proposedChanges', this)">Proposed Changes</a>
+    <a href="#archivedMembers" onclick="loadPage('archivedMembers', this)">Archived Members</a>
+    <a href="#upload" onclick="loadPage('upload', this)">Upload New Roster</a> <!-- Added link -->
+    <a href="#errorLog" onclick="loadPage('errorLog', this)">Error Log</a> <!-- Added link -->
+  </nav>
+  </nav>
+  <div class="content" id="content">
+    <!-- Content will be dynamically loaded here -->
+  </div>
+
+  <script>
+  // Load the default page
+  document.addEventListener('DOMContentLoaded', function () {
+    loadPage('currentRoster', document.querySelector('nav a'));
+  });
+
+  // Load the page content dynamically
+  function loadPage(page, element) {
+    // Highlight the selected navigation item
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+    if (element) element.classList.add('active');
+
+    // Show a loader while waiting for the content
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('content').style.display = 'none';
+
+    // Fetch the content from the server
+    google.script.run
+      .withSuccessHandler(function (html) {
+        // Log the response for debugging
+        console.log('Page Content:', html);
+
+        // Hide the loader and display the content
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+        document.getElementById('content').innerHTML = html;
+      })
+      .withFailureHandler(function (error) {
+        // Handle any errors from the server
+        console.error('Error loading page:', error);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+        document.getElementById('content').innerHTML = '<p>Error loading content. Please try again later.</p>';
+      })
+      .getPageContent(page);
+  }
+
+  // Render the content dynamically with filters applied
+  function applyFilters() {
+    const wlName = document.getElementById('wlNameFilter').value;
+    const seaMemberType = document.getElementById('seaMemberTypeFilter').value;
+
+    // Show a loader while filtering
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('content').style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(function (html) {
+        // Log the filtered content for debugging
+        console.log('Filtered Content:', html);
+
+        // Hide the loader and display the filtered content
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+        document.getElementById('content').innerHTML = html;
+      })
+      .withFailureHandler(function (error) {
+        // Handle any errors from the server
+        console.error('Error applying filters:', error);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+        document.getElementById('content').innerHTML = '<p>Error applying filters. Please try again later.</p>';
+      })
+      .filterCurrentRoster(wlName, seaMemberType);
+  }
+</script>
+
+
+</body>
+</html>
